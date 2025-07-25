@@ -10,9 +10,9 @@ class BaseScraper(ABC):
         pass
 
     @abstractmethod
-    def extract_info(self, pdf_links):
+    def extract_info(self, items):
         pass
 
     @abstractmethod
-    def save(self, data):
+    def get_total_pages(self, html):
         pass
