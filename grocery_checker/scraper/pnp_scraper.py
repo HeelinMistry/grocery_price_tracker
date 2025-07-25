@@ -9,6 +9,23 @@ class PnPScraper(BaseScraper):
     BASE_URL = "https://www.pnp.co.za/c/pnpbase"
     total_pages = 1
 
+    async def fetch_and_parse(self, page, context, semaphore):
+        async with semaphore:
+            print(page)
+            page_url = f"{self.BASE_URL}?currentPage={page}"
+            page_obj = await context.new_page()
+            try:
+                await page_obj.goto(page_url, timeout=15000)
+                await page_obj.wait_for_selector("div.product-grid-item__info-container", timeout=10000)
+                await page_obj.wait_for_timeout(10000)
+                html = await page_obj.content()
+                return self.parse(html)
+            except TimeoutError:
+                print(f"[Timeout] Page {page} skipped")
+                return pd.DataFrame()
+            finally:
+                await page_obj.close()
+
     def fetch(self, page_index=0):
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True)
@@ -20,12 +37,23 @@ class PnPScraper(BaseScraper):
             content = page.content()
         return content
 
-    def get_total_pages(self, html):
-        soup = BeautifulSoup(html, "html.parser")
-        last_page = soup.select_one("a.last")
-        if last_page and "currentPage=" in last_page["href"]:
-            return int(last_page["href"].split("currentPage=")[1]) + 1
-        return 1
+    async def get_total_pages(self, context):
+        page_obj = await context.new_page()
+        try:
+            await page_obj.goto(self.BASE_URL, timeout=15000)
+            await page_obj.wait_for_selector("div.cx-pagination", timeout=10000)
+            html = await page_obj.content()
+            soup = BeautifulSoup(html, "html.parser")
+            # Try finding the last pagination number button
+            last_page = soup.select_one("a.last")
+            if last_page and "currentPage=" in last_page["href"]:
+                return int(last_page["href"].split("currentPage=")[1]) + 1
+            return 1
+        except Exception as e:
+            print(f"[Error getting total pages] {e}")
+            return 1
+        finally:
+            await page_obj.close()
 
     def parse(self, html):
         soup = BeautifulSoup(html, "html.parser")
