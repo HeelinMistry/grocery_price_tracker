@@ -4,7 +4,8 @@ def main():
     scraper = PnPScraper()
     html = scraper.fetch()
     links = scraper.parse(html)
-    scraper.extract_info(links)
+    catalogue_data = scraper.extract_info(links)
+    print(catalogue_data.head())
     # scraper.save(links)
 
 if __name__ == "__main__":

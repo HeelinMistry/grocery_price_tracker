@@ -1,10 +1,13 @@
 import os
 import re
+from urllib.parse import urlparse, unquote
+
+import pandas as pd
 import requests
 from bs4 import BeautifulSoup
-from urllib.parse import urlparse, unquote
-from scraper.base_scraper import BaseScraper
 from playwright.sync_api import sync_playwright
+
+from scraper.base_scraper import BaseScraper
 
 
 def extract_info_details(region, url):
@@ -20,6 +23,7 @@ def extract_info_details(region, url):
     title = match.group(7).replace('+', ' ')
 
     return {
+        "store": "PicknPay",
         "region": region,
         "start_date": start_date,
         "end_date": end_date,
@@ -37,6 +41,7 @@ class PnPScraper(BaseScraper):
             browser = p.chromium.launch(headless=True)
             page = browser.new_page()
             page.goto(self.BASE_URL)
+            page.wait_for_selector("div.pdfdownload", timeout=10000)
             page.wait_for_timeout(5000)  # wait 5s for JS to load
             content = page.content()
 
@@ -60,17 +65,15 @@ class PnPScraper(BaseScraper):
                     region = button.get_text(strip=True)
                     pdf_links.append((region, href))
 
-        # Output
-        for region, url in pdf_links:
-            print(f"{region}: {url}")
-
         return pdf_links
 
     def extract_info(self, pdfs):
+        data = []
         for region, url in pdfs:
             info = extract_info_details(region, url)
             if info:
-                print(info)
+                data.append(info)
+        return pd.DataFrame(data)
 
     def save(self, data):
         os.makedirs(self.SAVE_DIR, exist_ok=True)
