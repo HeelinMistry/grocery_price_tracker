@@ -1,6 +1,5 @@
 import pandas as pd
 from bs4 import BeautifulSoup
-from playwright.sync_api import sync_playwright
 
 from scraper.base_scraper import BaseScraper
 
@@ -15,7 +14,7 @@ class PnPScraper(BaseScraper):
             page_url = f"{self.BASE_URL}?currentPage={page}"
             page_obj = await context.new_page()
             try:
-                await page_obj.goto(page_url, timeout=15000)
+                await page_obj.goto(page_url, timeout=10000)
                 await page_obj.wait_for_selector("div.product-grid-item__info-container", timeout=10000)
                 await page_obj.wait_for_timeout(10000)
                 html = await page_obj.content()
@@ -25,17 +24,6 @@ class PnPScraper(BaseScraper):
                 return pd.DataFrame()
             finally:
                 await page_obj.close()
-
-    def fetch(self, page_index=0):
-        with sync_playwright() as p:
-            browser = p.chromium.launch(headless=True)
-            page = browser.new_page()
-            url = f"{self.BASE_URL}?currentPage={page_index}"
-            page.goto(url, timeout=10000)
-            page.wait_for_selector("div.product-grid-item__info-container", timeout=10000)
-            page.wait_for_timeout(10000)  # wait 5s for JS to load
-            content = page.content()
-        return content
 
     async def get_total_pages(self, context):
         page_obj = await context.new_page()

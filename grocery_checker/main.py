@@ -5,6 +5,19 @@ from playwright.async_api import async_playwright
 
 from scraper.pnp_scraper import PnPScraper
 
+async def retry_fetch_and_parse(scraper, page, context, semaphore, max_retries=3):
+    for attempt in range(1, max_retries + 1):
+        try:
+            return await scraper.fetch_and_parse(page, context, semaphore)
+        except Exception as e:
+            print(f"Error on page {page}, attempt {attempt}: {e}")
+            if attempt == max_retries:
+                print(f"Page {page} failed after {max_retries} attempts.")
+                return pd.DataFrame()  # or None if you prefer
+            await asyncio.sleep(2 * attempt)  # exponential backoff
+    return pd.DataFrame()
+
+
 async def run_scraper_concurrently(scraper, max_concurrency=10):
     all_results = []
     async with async_playwright() as p:
@@ -18,7 +31,8 @@ async def run_scraper_concurrently(scraper, max_concurrency=10):
             semaphore = asyncio.Semaphore(max_concurrency)
 
             tasks = [
-                scraper.fetch_and_parse(page, context, semaphore)
+                retry_fetch_and_parse(scraper, page, context, semaphore, max_retries=3)
+                # scraper.fetch_and_parse(page, context, semaphore)
                 for page in range(total_pages)
             ]
             all_results = await asyncio.gather(*tasks, return_exceptions=True)
