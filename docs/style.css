@@ -26,3 +26,7 @@ th, td {
 .has-promo {
   background-color: #ffeca0; /* Light yellow background */
 }
+
+.has-old-price.has-promo {
+  background-color: #a0a2ff; /* Light yellow background */
+}
