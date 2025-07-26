@@ -3,45 +3,50 @@ const jsonFilePath = 'data/latest.json'; // Or dynamically get latest if needed
 async function loadData() {
   const response = await fetch(jsonFilePath);
   currentData = await response.json();
-
-  const selectedFilter = document.getElementById('filter')?.value || 'all';
-  renderTable(currentData, selectedFilter);
+  renderTable();
 }
 
-function renderTable(data, filter = 'all') {
+function renderTable() {
   const tbody = document.querySelector('#dataTable tbody');
   tbody.innerHTML = '';
 
-  // Apply filter
-  const filtered = data.filter(row => {
-    const hasOldPrice = row.old_price && row.old_price !== '';
-    const hasPromo = row.promotion && row.promotion !== '';
+  const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+  let filtered = currentData;
 
-    return !((filter === 'old_price' && !hasOldPrice) ||
-        (filter === 'promotion' && !hasPromo) ||
-        (filter === 'both' && !(hasOldPrice && hasPromo)));
+  // Apply search term
+  if (searchTerm) {
+    filtered = filtered.filter(row =>
+      Object.values(row).some(value =>
+        String(value).toLowerCase().includes(searchTerm)
+      )
+    );
+  }
+
+  // Apply filter dropdown (promotion, old price, both)
+  const filterValue = document.getElementById('filter')?.value || 'all';
+  filtered = filtered.filter(row => {
+    if (filterValue === 'promo') return !!row.promotion;
+    if (filterValue === 'old_price') return !!row.old_price;
+    if (filterValue === 'both') return !!row.promotion && !!row.old_price;
+    return true;
   });
 
-  // Sort based on currentSort
+  // Apply sorting
   const sorted = [...filtered];
   if (currentSort.column && currentSort.direction) {
     sorted.sort((a, b) => {
       let valA = a[currentSort.column] || '';
       let valB = b[currentSort.column] || '';
-      
-      const isString = typeof valA === 'string' && typeof valB === 'string';
 
-      if (isString) {
-        const comparison = valA.localeCompare(valB, undefined, {
-          numeric: true,
-          sensitivity: 'base', // Case-insensitive
-        });
-        return currentSort.direction === 'asc' ? comparison : -comparison;
+      if (typeof valA === 'string' && typeof valB === 'string') {
+        return currentSort.direction === 'asc'
+          ? valA.localeCompare(valB, undefined, { numeric: true, sensitivity: 'base' })
+          : valB.localeCompare(valA, undefined, { numeric: true, sensitivity: 'base' });
       }
-      // Fallback for numbers
-      if (valA < valB) return currentSort.direction === 'asc' ? -1 : 1;
-      if (valA > valB) return currentSort.direction === 'asc' ? 1 : -1;
-      return 0;
+
+      return currentSort.direction === 'asc'
+        ? valA - valB
+        : valB - valA;
     });
   }
 
@@ -72,9 +77,10 @@ function renderTable(data, filter = 'all') {
 let currentData = [];
 let currentSort = { column: null, direction: 'asc' };
 
+document.getElementById('searchInput').addEventListener('input', renderTable);
+
 document.getElementById('filter').addEventListener('change', () => {
-  const selected = document.getElementById('filter').value;
-  renderTable(currentData, selected);
+  renderTable();
 });
 
 document.querySelectorAll('th.sortable').forEach(th => {
@@ -88,9 +94,7 @@ document.querySelectorAll('th.sortable').forEach(th => {
       currentSort.column = column;
       currentSort.direction = 'asc';
     }
-
-    const filter = document.getElementById('filter')?.value || 'all';
-    renderTable(currentData, filter);
+    renderTable();
   });
 });
 
