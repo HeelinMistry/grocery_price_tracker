@@ -25,16 +25,20 @@ function renderTable(data, filter = 'all') {
   // Sort based on currentSort
   const sorted = [...filtered];
   if (currentSort.column && currentSort.direction) {
-    data.sort((a, b) => {
+    sorted.sort((a, b) => {
       let valA = a[currentSort.column] || '';
       let valB = b[currentSort.column] || '';
+      
+      const isString = typeof valA === 'string' && typeof valB === 'string';
 
-      // Case-insensitive comparison if values are strings
-      if (typeof valA === 'string' && typeof valB === 'string') {
-        valA = valA.toLowerCase();
-        valB = valB.toLowerCase();
+      if (isString) {
+        const comparison = valA.localeCompare(valB, undefined, {
+          numeric: true,
+          sensitivity: 'base', // Case-insensitive
+        });
+        return currentSort.direction === 'asc' ? comparison : -comparison;
       }
-
+      // Fallback for numbers
       if (valA < valB) return currentSort.direction === 'asc' ? -1 : 1;
       if (valA > valB) return currentSort.direction === 'asc' ? 1 : -1;
       return 0;
