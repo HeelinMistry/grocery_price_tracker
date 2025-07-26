@@ -9,7 +9,7 @@ async function loadData() {
 
   data.forEach(row => {
     const tr = document.createElement('tr');
-    ['store', 'name', 'price', 'old_price', 'promo'].forEach(field => {
+    ['store', 'name', 'price', 'old_price', 'promotion'].forEach(field => {
       const td = document.createElement('td');
       td.textContent = row[field] || '';
       tr.appendChild(td);
