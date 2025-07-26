@@ -3,7 +3,9 @@ const jsonFilePath = 'data/latest.json'; // Or dynamically get latest if needed
 async function loadData() {
   const response = await fetch(jsonFilePath);
   currentData = await response.json();
-  renderTable(currentData);
+
+  const selectedFilter = document.getElementById('filter')?.value || 'all';
+  renderTable(currentData, selectedFilter);
 }
 
 function renderTable(data, filter = 'all') {
@@ -65,8 +67,9 @@ function renderTable(data, filter = 'all') {
 let currentData = [];
 let currentSort = { column: null, direction: 'asc' };
 
-document.getElementById('filter').addEventListener('change', (e) => {
-  loadData(e.target.value);
+document.getElementById('filter').addEventListener('change', () => {
+  const selected = document.getElementById('filter').value;
+  renderTable(currentData, selected);
 });
 
 document.querySelectorAll('th.sortable').forEach(th => {
