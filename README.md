@@ -22,7 +22,7 @@ A lightweight scraper and tracker for South African grocery store products. This
 
 ### 1. Clone the Repository
 
-git clone https://github.com/HeelinMistry/python_projects.git
+git clone https://github.com/HeelinMistry/grocery_price_tracker.git
 
 cd grocery_checker
 
