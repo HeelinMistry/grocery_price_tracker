@@ -9,6 +9,17 @@ async function loadData() {
 
   data.forEach(row => {
     const tr = document.createElement('tr');
+
+    // ✅ Add class if there's an old_price value
+    if (row.old_price) {
+      tr.classList.add('has-old-price');
+    }
+
+    // Add class if there's a promotion
+    if (row.promotion) {
+      tr.classList.add('has-promo');
+    }
+
     ['store', 'name', 'price', 'old_price', 'promotion'].forEach(field => {
       const td = document.createElement('td');
       td.textContent = row[field] || '';

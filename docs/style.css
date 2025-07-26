@@ -18,3 +18,11 @@ th, td {
   padding: 0.5rem;
   border: 1px solid #ccc;
 }
+
+.has-old-price {
+    background-color: #99ffb4; /* light green background */
+  }
+
+.has-promo {
+  background-color: #ffeca0; /* Light yellow background */
+}
