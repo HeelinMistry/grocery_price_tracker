@@ -3,6 +3,8 @@ import os
 from datetime import datetime
 import pandas as pd
 from playwright.async_api import async_playwright
+
+from scraper.foodline_scraper import FoodlineScraper
 from scraper.pnp_scraper import PnPScraper
 
 async def retry_fetch_and_parse(scraper, page, context, semaphore, max_retries=3):
@@ -51,30 +53,41 @@ async def run_scraper_concurrently(scraper, headless = True, max_concurrency=5):
     )
     return combined_df
 
-def save_dataframe(df):
-    # Get current date
-    today = datetime.today()
-    date_str = today.strftime("%Y-%m-%d")
-    filename = f"pnp_products_{date_str}.json"
+def save_dataframes(store_dfs: dict[str, pd.DataFrame]):
+    today = datetime.today().strftime("%Y-%m-%d")
 
-    # Ensure directories exist
     os.makedirs("data", exist_ok=True)
     os.makedirs("docs/data", exist_ok=True)
 
-    # Save to data/
-    data_path = os.path.join("data", filename)
-    df.to_json(data_path, orient="records", indent=2, index=False)
+    combined_df = pd.DataFrame()
 
-    # Save to docs/data/
-    website_data_path = os.path.join("docs/data", "latest.json")
-    df.to_json(website_data_path, orient="records", indent=2, index=False)
+    for store, df in store_dfs.items():
+        if df.empty:
+            print(f"⚠️ No data to save for {store}")
+            continue
 
-    print(f"✅ Saved JSON to {data_path} and {website_data_path}")
+        filename = f"{store.lower()}_products_{today}.csv"
+        file_path = os.path.join("data", filename)
+        df.to_csv(file_path, index=False)
+
+        print(f"✅ Saved {store} data to {file_path}")
+        combined_df = pd.concat([combined_df, df], ignore_index=True)
+
+    # Save combined latest.json
+    latest_path = os.path.join("docs/data", "latest.json")
+    combined_df.to_json(latest_path, orient="records", indent=2, index=False)
+    print(f"✅ Saved combined data to {latest_path}")
+
 
 def main():
-    scraper = PnPScraper()
-    df = asyncio.run(run_scraper_concurrently(scraper))
-    save_dataframe(df)
+    scrapers = [PnPScraper(), FoodlineScraper()]
+    store_dfs = {}
+    for scraper in scrapers:
+        store_name = scraper.__class__.__name__.replace("Scraper", "")
+        print(f"🔍 Running scraper for: {store_name}")
+        df = asyncio.run(run_scraper_concurrently(scraper))
+        store_dfs[store_name] = df
+    save_dataframes(store_dfs)
 
 if __name__ == "__main__":
     main()
