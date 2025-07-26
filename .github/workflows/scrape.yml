@@ -26,6 +26,7 @@ jobs:
 
       - name: Run scraper
         run: |
+          cd grocery_checker
           python main.py
 
       - name: Commit and push new data
