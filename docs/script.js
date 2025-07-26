@@ -69,12 +69,21 @@ function renderTable() {
 
         ['store', 'name', 'price', 'old_price', 'promotion'].forEach(field => {
             const td = document.createElement('td');
-            td.textContent = row[field] || '';
+            if (field === 'price' || field === 'old_price') {
+                td.textContent = formatNumber(row[field]);
+            } else {
+                td.textContent = row[field] || '';
+            }
             tr.appendChild(td);
         });
         tbody.appendChild(tr);
     });
 }
+
+const formatNumber = (value) => {
+  const num = parseFloat(value);
+  return isNaN(num) ? value : num.toFixed(2);
+};
 
 document.addEventListener('DOMContentLoaded', () => {
     loadData();
