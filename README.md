@@ -24,8 +24,6 @@ A lightweight scraper and tracker for South African grocery store products. This
 
 git clone https://github.com/HeelinMistry/grocery_price_tracker.git
 
-cd grocery_checker
-
 ### 2. Install Dependencies
 
 pip install -r requirements.txt
