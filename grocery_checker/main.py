@@ -1,8 +1,8 @@
 import asyncio
-
+import os
+from datetime import datetime
 import pandas as pd
 from playwright.async_api import async_playwright
-
 from scraper.pnp_scraper import PnPScraper
 
 async def retry_fetch_and_parse(scraper, page, context, semaphore, max_retries=3):
@@ -18,21 +18,19 @@ async def retry_fetch_and_parse(scraper, page, context, semaphore, max_retries=3
     return pd.DataFrame()
 
 
-async def run_scraper_concurrently(scraper, max_concurrency=10):
+async def run_scraper_concurrently(scraper, headless = True, max_concurrency=5):
     all_results = []
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await p.chromium.launch(headless=headless)
         context = await browser.new_context()
         try:
             total_pages = await scraper.get_total_pages(context)
-            # total_pages = 10
             print(f"Total pages found: {total_pages}")
 
             semaphore = asyncio.Semaphore(max_concurrency)
 
             tasks = [
                 retry_fetch_and_parse(scraper, page, context, semaphore, max_retries=3)
-                # scraper.fetch_and_parse(page, context, semaphore)
                 for page in range(total_pages)
             ]
             all_results = await asyncio.gather(*tasks, return_exceptions=True)
@@ -53,29 +51,24 @@ async def run_scraper_concurrently(scraper, max_concurrency=10):
     )
     return combined_df
 
+def save_dataframe(df):
+    os.makedirs("data", exist_ok=True)
+    # Get current date
+    today = datetime.today()
+    date_str = today.strftime("%Y-%m-%d")
+    # Construct filename
+    filename = f"data/pnp_products_{date_str}.json"
+
+    # Save DataFrame
+    df.to_json(filename, orient="records", indent=2, index=False)
+    # df.to_csv("data/pnp_products.json", index=False)
+
+    print(f"Scraping completed and saved to data/pnp_products_{date_str}.json")
+
 def main():
     scraper = PnPScraper()
     df = asyncio.run(run_scraper_concurrently(scraper))
-    df.to_csv("data/pnp_products.csv", index=False)
-    print("Scraping completed and saved to pnp_products.csv")
-    print(df.head())
-#
-# def main():
-#     scraper = PnPScraper()
-#     html = scraper.fetch()
-#     total_pages = scraper.get_total_pages(html)
-#     all_data = pd.DataFrame()
-#     for page in range(total_pages):
-#         print(page)
-#         if page != 0:
-#             html = scraper.fetch(page)
-#         page_data = scraper.parse(html)
-#         all_data = pd.concat([all_data, page_data], ignore_index=True)
-#
-#         # Save to CSV
-#         all_data.to_csv("data/products.csv", index=False)
-#
-#     print("Scraping completed and saved to products.csv")
+    save_dataframe(df)
 
 if __name__ == "__main__":
     main()
