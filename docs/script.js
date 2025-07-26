@@ -11,18 +11,12 @@ async function loadData() {
     const tr = document.createElement('tr');
 
     // Add class if there's an old_price value
-    if (row.old_price) {
-      tr.classList.add('has-old-price');
-    }
-
-    // Add class if there's a promotion
-    if (row.promotion) {
-      tr.classList.add('has-promo');
-    }
-
-    // Add classes if there's a promotion and old price
     if (row.promotion && row.old_price) {
       tr.classList.add('has-old-price', 'has-promo');
+    } else if (row.old_price) {
+      tr.classList.add('has-old-price');
+    } else if (row.promotion) {
+      tr.classList.add('has-promo');
     }
 
     ['store', 'name', 'price', 'old_price', 'promotion'].forEach(field => {
