@@ -59,14 +59,14 @@ def save_dataframe(df):
 
     # Ensure directories exist
     os.makedirs("data", exist_ok=True)
-    os.makedirs("website/data", exist_ok=True)
+    os.makedirs("docs/data", exist_ok=True)
 
     # Save to data/
     data_path = os.path.join("data", filename)
     df.to_json(data_path, orient="records", indent=2, index=False)
 
-    # Save to website/data/
-    website_data_path = os.path.join("website/data", "latest.json")
+    # Save to docs/data/
+    website_data_path = os.path.join("docs/data", "latest.json")
     df.to_json(website_data_path, orient="records", indent=2, index=False)
 
     print(f"✅ Saved JSON to {data_path} and {website_data_path}")
