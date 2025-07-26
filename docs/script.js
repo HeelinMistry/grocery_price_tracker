@@ -1,29 +1,48 @@
 const jsonFilePath = 'data/latest.json'; // Or dynamically get latest if needed
 
-async function loadData(filter = 'all') {
+async function loadData() {
   const response = await fetch(jsonFilePath);
-  const data = await response.json();
-  renderTable(data, filter);
+  currentData = await response.json();
+  renderTable(currentData);
 }
 
 function renderTable(data, filter = 'all') {
   const tbody = document.querySelector('#dataTable tbody');
   tbody.innerHTML = '';
 
-  data.forEach(row => {
+  // Apply filter
+  const filtered = data.filter(row => {
     const hasOldPrice = row.old_price && row.old_price !== '';
     const hasPromo = row.promotion && row.promotion !== '';
 
-    // Filter logic
-    if (
-      (filter === 'old_price' && !hasOldPrice) ||
-      (filter === 'promotion' && !hasPromo) ||
-      (filter === 'both' && !(hasOldPrice && hasPromo))
-    ) {
-      return; // Skip rows that don't match filter
-    }
+    return !((filter === 'old_price' && !hasOldPrice) ||
+        (filter === 'promotion' && !hasPromo) ||
+        (filter === 'both' && !(hasOldPrice && hasPromo)));
+  });
 
+  // Sort based on currentSort
+  const sorted = [...filtered];
+  if (currentSort.column) {
+    sorted.sort((a, b) => {
+      let aVal = a[currentSort.column];
+      let bVal = b[currentSort.column];
+
+      if (currentSort.column === 'price') {
+        aVal = parseFloat(aVal);
+        bVal = parseFloat(bVal);
+      }
+
+      if (aVal < bVal) return currentSort.direction === 'asc' ? -1 : 1;
+      if (aVal > bVal) return currentSort.direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }
+
+  // Render rows
+  sorted.forEach(row => {
     const tr = document.createElement('tr');
+    const hasOldPrice = row.old_price && row.old_price !== '';
+    const hasPromo = row.promotion && row.promotion !== '';
 
     if (hasOldPrice && hasPromo) {
       tr.classList.add('has-old-price', 'has-promo');
@@ -42,8 +61,29 @@ function renderTable(data, filter = 'all') {
   });
 }
 
+
+let currentData = [];
+let currentSort = { column: null, direction: 'asc' };
+
 document.getElementById('filter').addEventListener('change', (e) => {
   loadData(e.target.value);
+});
+
+document.querySelectorAll('th.sortable').forEach(th => {
+  th.addEventListener('click', () => {
+    const column = th.getAttribute('data-sort');
+
+    // Toggle direction if same column
+    if (currentSort.column === column) {
+      currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+    } else {
+      currentSort.column = column;
+      currentSort.direction = 'asc';
+    }
+
+    const filter = document.getElementById('filter')?.value || 'all';
+    renderTable(currentData, filter);
+  });
 });
 
 // Basic search filter

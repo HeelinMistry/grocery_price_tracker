@@ -2,6 +2,8 @@
 
 A lightweight scraper and tracker for South African grocery store products. This project currently extracts product details from **Pick n Pay** and stores the data as JSON files, versioned by date. Weekly automated scrapes are performed via GitHub Actions.
 
+https://heelinmistry.github.io/grocery_price_tracker/
+
 ## 📦 Features
 
 - Extracts product data (name, price, discount, promo) from Pick n Pay

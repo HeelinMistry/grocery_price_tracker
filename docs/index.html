@@ -16,13 +16,21 @@
       <option value="promotion">Promotions</option>
       <option value="both">Discount + Promotion</option>
     </select>
+    <label for="sort">Sort by:</label>
+    <select id="sort">
+      <option value="none">None</option>
+      <option value="name-asc">Product Name (A → Z)</option>
+      <option value="name-desc">Product Name (Z → A)</option>
+      <option value="price-asc">Price (Low → High)</option>
+      <option value="price-desc">Price (High → Low)</option>
+    </select>
   </div>
   <table id="dataTable">
     <thead>
       <tr>
         <th>Store</th>
-        <th>Product</th>
-        <th>Price</th>
+        <th data-sort="name" class="sortable">Product</th>
+        <th data-sort="price" class="sortable">Price</th>
         <th>Old Price</th>
         <th>Promotion</th>
       </tr>

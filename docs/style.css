@@ -19,6 +19,16 @@ th, td {
   border: 1px solid #ccc;
 }
 
+th.sortable {
+  cursor: pointer;
+}
+
+th.sortable::after {
+  content: ' ⇅';
+  font-size: 0.8em;
+  color: #999;
+}
+
 .has-old-price {
     background-color: #99ffb4; /* light green background */
   }
