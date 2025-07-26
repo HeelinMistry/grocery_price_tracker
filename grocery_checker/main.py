@@ -52,18 +52,24 @@ async def run_scraper_concurrently(scraper, headless = True, max_concurrency=5):
     return combined_df
 
 def save_dataframe(df):
-    os.makedirs("data", exist_ok=True)
     # Get current date
     today = datetime.today()
     date_str = today.strftime("%Y-%m-%d")
-    # Construct filename
-    filename = f"data/pnp_products_{date_str}.json"
+    filename = f"pnp_products_{date_str}.json"
 
-    # Save DataFrame
-    df.to_json(filename, orient="records", indent=2, index=False)
-    # df.to_csv("data/pnp_products.json", index=False)
+    # Ensure directories exist
+    os.makedirs("data", exist_ok=True)
+    os.makedirs("website/data", exist_ok=True)
 
-    print(f"Scraping completed and saved to data/pnp_products_{date_str}.json")
+    # Save to data/
+    data_path = os.path.join("data", filename)
+    df.to_json(data_path, orient="records", indent=2, index=False)
+
+    # Save to website/data/
+    website_data_path = os.path.join("website/data", "latest.json")
+    df.to_json(website_data_path, orient="records", indent=2, index=False)
+
+    print(f"✅ Saved JSON to {data_path} and {website_data_path}")
 
 def main():
     scraper = PnPScraper()
