@@ -1,21 +1,35 @@
 const jsonFilePath = 'data/latest.json'; // Or dynamically get latest if needed
 
-async function loadData() {
+async function loadData(filter = 'all') {
   const response = await fetch(jsonFilePath);
   const data = await response.json();
+  renderTable(data, filter);
+}
 
+function renderTable(data, filter = 'all') {
   const tbody = document.querySelector('#dataTable tbody');
   tbody.innerHTML = '';
 
   data.forEach(row => {
+    const hasOldPrice = row.old_price && row.old_price !== '';
+    const hasPromo = row.promotion && row.promotion !== '';
+
+    // Filter logic
+    if (
+      (filter === 'old_price' && !hasOldPrice) ||
+      (filter === 'promotion' && !hasPromo) ||
+      (filter === 'both' && !(hasOldPrice && hasPromo))
+    ) {
+      return; // Skip rows that don't match filter
+    }
+
     const tr = document.createElement('tr');
 
-    // Add class if there's an old_price value
-    if (row.promotion && row.old_price) {
+    if (hasOldPrice && hasPromo) {
       tr.classList.add('has-old-price', 'has-promo');
-    } else if (row.old_price) {
+    } else if (hasOldPrice) {
       tr.classList.add('has-old-price');
-    } else if (row.promotion) {
+    } else if (hasPromo) {
       tr.classList.add('has-promo');
     }
 
@@ -27,6 +41,10 @@ async function loadData() {
     tbody.appendChild(tr);
   });
 }
+
+document.getElementById('filter').addEventListener('change', (e) => {
+  loadData(e.target.value);
+});
 
 // Basic search filter
 document.getElementById('filterInput').addEventListener('input', function () {

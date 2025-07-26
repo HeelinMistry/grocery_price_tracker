@@ -8,6 +8,15 @@
 <body>
   <h1>🛒 Grocery Price Tracker</h1>
   <input type="text" id="filterInput" placeholder="Search product...">
+  <div>
+    <label for="filter">Show:</label>
+    <select id="filter">
+      <option value="all">All Products</option>
+      <option value="old_price">Discounted Products</option>
+      <option value="promotion">Promotions</option>
+      <option value="both">Discount + Promotion</option>
+    </select>
+  </div>
   <table id="dataTable">
     <thead>
       <tr>
