@@ -24,18 +24,19 @@ function renderTable(data, filter = 'all') {
 
   // Sort based on currentSort
   const sorted = [...filtered];
-  if (currentSort.column) {
-    sorted.sort((a, b) => {
-      let aVal = a[currentSort.column];
-      let bVal = b[currentSort.column];
+  if (currentSort.column && currentSort.direction) {
+    data.sort((a, b) => {
+      let valA = a[currentSort.column] || '';
+      let valB = b[currentSort.column] || '';
 
-      if (currentSort.column === 'price') {
-        aVal = parseFloat(aVal);
-        bVal = parseFloat(bVal);
+      // Case-insensitive comparison if values are strings
+      if (typeof valA === 'string' && typeof valB === 'string') {
+        valA = valA.toLowerCase();
+        valB = valB.toLowerCase();
       }
 
-      if (aVal < bVal) return currentSort.direction === 'asc' ? -1 : 1;
-      if (aVal > bVal) return currentSort.direction === 'asc' ? 1 : -1;
+      if (valA < valB) return currentSort.direction === 'asc' ? -1 : 1;
+      if (valA > valB) return currentSort.direction === 'asc' ? 1 : -1;
       return 0;
     });
   }
