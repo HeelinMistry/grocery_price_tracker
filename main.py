@@ -5,12 +5,17 @@ import pandas as pd
 from playwright.async_api import async_playwright
 
 from scraper.foodline_scraper import FoodlineScraper
+from scraper.makro_scraper import MakroScraper
 from scraper.pnp_scraper import PnPScraper
 
 async def retry_fetch_and_parse(scraper, page, context, semaphore, max_retries=3):
     for attempt in range(1, max_retries + 1):
         try:
-            return await scraper.fetch_and_parse(page, context, semaphore)
+            df = await scraper.fetch_and_parse(page, context, semaphore)
+            if df.empty:
+                print(f"No products found on page {page}. Ending scraping.")
+                return df  # or signal to stop scraping
+            return df
         except Exception as e:
             print(f"Error on page {page}, attempt {attempt}: {e}")
             if attempt == max_retries:
@@ -80,7 +85,8 @@ def save_dataframes(store_dfs: dict[str, pd.DataFrame]):
 
 
 def main():
-    scrapers = [PnPScraper(), FoodlineScraper()]
+    # scrapers = [PnPScraper(), FoodlineScraper(), MakroScraper()]
+    scrapers = [MakroScraper()]
     store_dfs = {}
     for scraper in scrapers:
         store_name = scraper.__class__.__name__.replace("Scraper", "")
