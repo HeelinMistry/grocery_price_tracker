@@ -16,7 +16,6 @@ class PnPScraper(BaseScraper):
             try:
                 await page_obj.goto(page_url, timeout=10000)
                 await page_obj.wait_for_selector("div.product-grid-item__info-container", timeout=10000)
-                await page_obj.wait_for_timeout(10000)
                 html = await page_obj.content()
                 return self.parse(html)
             except TimeoutError:
