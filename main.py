@@ -85,8 +85,7 @@ def save_dataframes(store_dfs: dict[str, pd.DataFrame]):
 
 
 def main():
-    # scrapers = [PnPScraper(), FoodlineScraper(), MakroScraper()]
-    scrapers = [MakroScraper()]
+    scrapers = [PnPScraper(), FoodlineScraper(), MakroScraper()]
     store_dfs = {}
     for scraper in scrapers:
         store_name = scraper.__class__.__name__.replace("Scraper", "")
